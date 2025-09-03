@@ -1,7 +1,7 @@
-// orders.js - الإصدار المعدل وفق الكود الأصلي
+// orders.js - الإصدار الكامل
 import { 
   auth, database,
-  ref, onValue,
+  ref, onValue, update,
   onAuthStateChanged
 } from './firebase.js';
 
@@ -144,19 +144,12 @@ function createPostOrderItem(postData) {
             <h3 class="order-title">${postData.postTitle}</h3>
             <span class="order-count">${postData.orders.length} طلب</span>
         </div>
-        
-        ${postData.postImage ? `
-            <div class="order-image">
-                <img src="${postData.postImage}" alt="${postData.postTitle}">
-            </div>
-        ` : ''}
-        
         <div class="order-meta">
             <span class="order-price">${postData.postPrice || 'غير محدد'}</span>
             <div class="order-statuses">
-                ${pendingCount > 0 ? `<span class="status-badge status-pending">${pendingCount} قيد الانتظار</span>` : ''}
-                ${approvedCount > 0 ? `<span class="status-badge status-approved">${approvedCount} مقبولة</span>` : ''}
-                ${rejectedCount > 0 ? `<span class="status-badge status-rejected">${rejectedCount} مرفوضة</span>` : ''}
+                ${pendingCount > 0 ? `<span class="status-badge status-pending">${pendingCount}</span>` : ''}
+                ${approvedCount > 0 ? `<span class="status-badge status-approved">${approvedCount}</span>` : ''}
+                ${rejectedCount > 0 ? `<span class="status-badge status-rejected">${rejectedCount}</span>` : ''}
             </div>
         </div>
     `;
@@ -171,7 +164,81 @@ function createPostOrderItem(postData) {
 // عرض طلبات منشور معين
 function showPostOrders(postData) {
     // حفظ طلبات المنشور الحالي
-    localStorage.setItem('currentPostOrders', JSON.stringify(postData));
+    window.currentPostOrders = postData;
+    
+    // إنشاء محتوى عرض الطلبات
+    ordersContainer.innerHTML = '';
+    
+    // إضافة زر العودة
+    const backButton = document.createElement('button');
+    backButton.className = 'btn back-btn';
+    backButton.innerHTML = '<i class="fas fa-arrow-right"></i> العودة';
+    backButton.addEventListener('click', () => {
+        loadOrders(document.querySelector('.filter-btn.active').dataset.filter);
+    });
+    ordersContainer.appendChild(backButton);
+    
+    // عرض عنوان المنشور
+    const postHeader = document.createElement('div');
+    postHeader.className = 'post-orders-header';
+    postHeader.innerHTML = `
+        <h3>طلبات المنشور: ${postData.postTitle}</h3>
+        <p>إجمالي الطلبات: ${postData.orders.length}</p>
+    `;
+    ordersContainer.appendChild(postHeader);
+    
+    // عرض الطلبات الفردية
+    if (postData.orders.length > 0) {
+        // ترتيب الطلبات حسب الأحدث
+        postData.orders.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+        
+        postData.orders.forEach(order => {
+            createIndividualOrderItem(order);
+        });
+    } else {
+        ordersContainer.innerHTML += '<p class="no-orders">لا توجد طلبات لهذا المنشور</p>';
+    }
+}
+
+// إنشاء عنصر طلب فردي
+function createIndividualOrderItem(order) {
+    const orderElement = document.createElement('div');
+    orderElement.className = 'order-item individual-order';
+    orderElement.dataset.orderId = order.id;
+    
+    // تنسيق حالة الطلب
+    let statusClass = 'status-pending';
+    let statusText = 'قيد الانتظار';
+    
+    if (order.status === 'approved') {
+        statusClass = 'status-approved';
+        statusText = 'مقبول';
+    } else if (order.status === 'rejected') {
+        statusClass = 'status-rejected';
+        statusText = 'مرفوض';
+    }
+    
+    orderElement.innerHTML = `
+        <div class="order-header">
+            <h3 class="order-title">طلب من مستخدم</h3>
+            <span class="order-status ${statusClass}">${statusText}</span>
+        </div>
+        <div class="order-meta">
+            <span class="order-date">${formatDate(order.createdAt)}</span>
+        </div>
+    `;
+    
+    orderElement.addEventListener('click', () => {
+        showOrderDetail(order);
+    });
+    
+    ordersContainer.appendChild(orderElement);
+}
+
+// عرض تفاصيل الطلب
+async function showOrderDetail(order) {
+    // حفظ الطلب الحالي للانتقال إلى صفحة التفاصيل
+    localStorage.setItem('currentOrder', JSON.stringify(order));
     window.location.href = 'order-detail.html';
 }
 
@@ -196,4 +263,4 @@ function formatDate(timestamp) {
         console.error('Error formatting date:', error);
         return 'غير معروف';
     }
-      }
+                       }
