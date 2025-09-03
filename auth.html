@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تسجيل الدخول - تسريع</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- شريط الرأس -->
+    <header>
+        <div class="header-content">
+            <a href="index.html" class="home-icon">
+                <i class="fas fa-home"></i>
+            </a>
+            <h1>تسريع</h1>
+        </div>
+    </header>
+
+    <!-- محتوى الصفحة -->
+    <div class="auth-container">
+        <div class="auth-tabs">
+            <button class="tab-btn active" data-tab="login">تسجيل الدخول</button>
+            <button class="tab-btn" data-tab="signup">إنشاء حساب</button>
+        </div>
+
+        <div id="auth-message" class="hidden"></div>
+
+        <form id="login-form" class="auth-form">
+            <div class="form-group">
+                <label for="login-email">البريد الإلكتروني</label>
+                <input type="email" id="login-email" required>
+            </div>
+            <div class="form-group">
+                <label for="login-password">كلمة المرور</label>
+                <input type="password" id="login-password" required>
+            </div>
+            <button type="submit" class="btn" id="login-btn">تسجيل الدخول</button>
+        </form>
+
+        <form id="signup-form" class="auth-form hidden">
+            <div class="form-group">
+                <label for="signup-name">الاسم الكامل</label>
+                <input type="text" id="signup-name" required>
+            </div>
+            <div class="form-group">
+                <label for="signup-phone">رقم الهاتف</label>
+                <input type="tel" id="signup-phone" required>
+            </div>
+            <div class="form-group">
+                <label for="signup-email">البريد الإلكتروني</label>
+                <input type="email" id="signup-email" required>
+            </div>
+            <div class="form-group">
+                <label for="signup-password">كلمة المرور</label>
+                <input type="password" id="signup-password" required>
+            </div>
+            <div class="form-group">
+                <label for="signup-address">العنوان</label>
+                <textarea id="signup-address"></textarea>
+            </div>
+            <button type="submit" class="btn" id="signup-btn">إنشاء حساب</button>
+        </form>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script type="module" src="auth.js"></script>
+</body>
+</html>nup-password">كلمة المرور</label>
+                    <input type="password" id="signup-password" placeholder="أنشئ كلمة مرور">
+                </div>
+                <div class="form-group">
+                    <label for="signup-address">العنوان</label>
+                    <input type="text" id="signup-address" placeholder="ادخل عنوانك">
+                </div>
+                <button id="signup-btn" class="btn">إنشاء حساب</button>
+            </div>
+        </div>
+    </main>
+
+    <!-- Firebase SDK -->
+    <script type="module" src="firebase.js"></script>
+    <script type="module" src="auth.js"></script>
+    <script type="module" src="app.js"></script>
+    <script type="module" src="auth-page.js"></script>
+</body>
+</html> () => {
+            setupLogin();
+            setupSignup();
+            setupAuthTabs();
+            checkAuthOnLoad();
+        });
+    </script>
+</body>
+</html>
