@@ -1,74 +1,22 @@
+// add-post.js - الإصدار المعدل وفق الكود الأصلي
 import { 
-    auth, database, storage, 
-    onAuthStateChanged, ref, push, serverTimestamp, set, onValue,
-    storageRef, uploadBytesResumable, getDownloadURL
-} from './firebase-init.js';
+  auth, database, storage, serverTimestamp,
+  ref, push, onValue, storageRef, uploadBytesResumable, getDownloadURL
+} from './firebase.js';
 
 // عناصر DOM
-const loadingOverlay = document.getElementById('loading-overlay');
-const uploadProgress = document.getElementById('upload-progress');
 const publishBtn = document.getElementById('publish-btn');
 const postImageInput = document.getElementById('post-image');
-const chooseImageBtn = document.getElementById('choose-image-btn');
-const cameraBtn = document.getElementById('camera-btn');
-const imageName = document.getElementById('image-name');
-const imagePreview = document.getElementById('image-preview');
-const previewImg = document.getElementById('preview-img');
-const removeImageBtn = document.getElementById('remove-image-btn');
-const homeIcon = document.getElementById('home-icon');
-const userInfo = document.getElementById('user-info');
+const loadingOverlay = document.getElementById('loading-overlay');
+const uploadProgress = document.getElementById('upload-progress');
 
-// متغيرات النظام
-let currentUserData = null;
-
-// تحقق من حالة المستخدم عند تحميل الصفحة
-document.addEventListener('DOMContentLoaded', () => {
-    checkAuthState();
-});
-
-// التحقق من حالة المصادقة
-function checkAuthState() {
-    onAuthStateChanged(auth, (user) => {
-        if (user) {
-            // المستخدم مسجل الدخول
-            const userRef = ref(database, 'users/' + user.uid);
-            
-            onValue(userRef, (snapshot) => {
-                if (snapshot.exists()) {
-                    currentUserData = snapshot.val();
-                    currentUserData.uid = user.uid;
-                    updateUserInfo();
-                } else {
-                    // إذا لم يكن لدى المستخدم بيانات، توجيهه للصفحة الرئيسية
-                    window.location.href = 'index.html';
-                }
-            });
-        } else {
-            // إذا لم يكن المستخدم مسجلاً، إعادة توجيهه للصفحة الرئيسية
-            window.location.href = 'index.html';
-        }
-    });
-}
-
-// تحديث معلومات المستخدم في الواجهة
-function updateUserInfo() {
-    if (currentUserData) {
-        userInfo.innerHTML = `
-            <div class="user-detail">
-                <i class="fas fa-user"></i>
-                <span>${currentUserData.name || 'مستخدم'}</span>
-            </div>
-        `;
-    }
-}
-
-// نشر منشور جديد - الكود المعدل كما في الأصل
+// نشر منشور جديد
 publishBtn.addEventListener('click', async e => {
     e.preventDefault();
     
     const user = auth.currentUser;
     if (!user) {
-        window.location.href = 'index.html#auth';
+        window.location.href = 'auth.html';
         return;
     }
     
@@ -140,7 +88,8 @@ publishBtn.addEventListener('click', async e => {
             authorName: userData.name,
             authorPhone: userData.phone,
             timestamp: serverTimestamp(),
-            imageUrl: imageUrl || ''
+            imageUrl: imageUrl || '',
+            createdAt: Date.now()
         };
         
         // حفظ المنشور في قاعدة البيانات
@@ -150,7 +99,7 @@ publishBtn.addEventListener('click', async e => {
         loadingOverlay.classList.add('hidden');
         alert('تم نشر المنشور بنجاح!');
         resetAddPostForm();
-        window.location.href = 'index.html';
+        window.location.href = 'index.html'; // الانتقال إلى الصفحة الرئيسية
     } 
     catch (error) {
         console.error('Error adding post: ', error);
@@ -159,52 +108,18 @@ publishBtn.addEventListener('click', async e => {
     }
 });
 
-// إعادة تعيين نموذج إضافة المنشور
+// إعادة تعيين النموذج
 function resetAddPostForm() {
     document.getElementById('post-title').value = '';
     document.getElementById('post-description').value = '';
     document.getElementById('post-price').value = '';
     document.getElementById('post-location').value = '';
     document.getElementById('post-phone').value = '';
-    postImageInput.value = '';
-    imageName.textContent = 'لم يتم اختيار صورة';
-    imagePreview.classList.add('hidden');
+    document.getElementById('post-image').value = '';
+    
+    // إخفاء معاينة الصورة إذا كانت موجودة
+    const imagePreview = document.getElementById('image-preview');
+    const imageName = document.getElementById('image-name');
+    if (imagePreview) imagePreview.classList.add('hidden');
+    if (imageName) imageName.textContent = 'لم يتم اختيار صورة';
 }
-
-// اختيار صورة من المعرض
-chooseImageBtn.addEventListener('click', () => {
-    postImageInput.click();
-});
-
-// فتح الكاميرا (إذا كان الجهاز يدعمها)
-cameraBtn.addEventListener('click', () => {
-    postImageInput.setAttribute('capture', 'environment');
-    postImageInput.click();
-});
-
-// عرض معاينة الصورة
-postImageInput.addEventListener('change', function() {
-    if (this.files && this.files[0]) {
-        const file = this.files[0];
-        imageName.textContent = file.name;
-        
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            previewImg.src = e.target.result;
-            imagePreview.classList.remove('hidden');
-        };
-        reader.readAsDataURL(file);
-    }
-});
-
-// إزالة الصورة المختارة
-removeImageBtn.addEventListener('click', () => {
-    postImageInput.value = '';
-    imageName.textContent = 'لم يتم اختيار صورة';
-    imagePreview.classList.add('hidden');
-});
-
-// العودة للصفحة الرئيسية
-homeIcon.addEventListener('click', () => {
-    window.location.href = 'index.html';
-});
