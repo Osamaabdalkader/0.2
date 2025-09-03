@@ -1,7 +1,7 @@
-// استيراد دوال Firebase
+// orders.js - الإصدار المعدل وفق الكود الأصلي
 import { 
   auth, database,
-  ref, onValue, update,
+  ref, onValue,
   onAuthStateChanged
 } from './firebase.js';
 
@@ -25,7 +25,6 @@ document.addEventListener('DOMContentLoaded', () => {
 function checkAuthState() {
     onAuthStateChanged(auth, user => {
         if (!user) {
-            // توجيه إلى صفحة التسجيل إذا لم يكن المستخدم مسجلاً
             window.location.href = 'auth.html';
             return;
         }
@@ -37,12 +36,10 @@ function checkAuthState() {
                 currentUserData = snapshot.val();
                 currentUserData.uid = user.uid;
                 
-                // إظهار أيقونة الإدارة إذا كان المستخدم مشرفاً
                 if (currentUserData.isAdmin) {
                     adminIcon.style.display = 'flex';
                     loadOrders('all');
                 } else {
-                    // إذا لم يكن مشرفاً، توجيه إلى الصفحة الرئيسية
                     window.location.href = 'index.html';
                 }
             }
@@ -62,52 +59,65 @@ function setupEventListeners() {
     });
 }
 
-
-
-
 // تحميل الطلبات للإدارة
 function loadOrders(filter = 'all') {
+    if (!currentUserData || !currentUserData.isAdmin) return;
+    
+    const ordersRef = ref(database, 'orders');
+    
+    // إزالة المستمع السابق إذا كان موجوداً
     if (ordersListener) {
         ordersListener();
     }
     
     ordersContainer.innerHTML = '<div class="loading-text">جاري تحميل الطلبات...</div>';
     
-    const ordersRef = ref(database, 'orders');
-    const orderedQuery = query(ordersRef, orderByChild('createdAt'));
-    
-    ordersListener = onValue(orderedQuery, (snapshot) => {
+    ordersListener = onValue(ordersRef, (snapshot) => {
         ordersContainer.innerHTML = '';
         currentOrders = [];
         
         if (snapshot.exists()) {
             const orders = snapshot.val();
-            const ordersArray = [];
+            const postsMap = new Map(); // تجميع الطلبات حسب المنشور
             
-            for (const orderId in orders) {
-                const order = { id: orderId, ...orders[orderId] };
+            // تحويل الطلبات إلى مصفوفة وتجميعها حسب المنشور
+            Object.keys(orders).forEach(orderId => {
+                const order = {
+                    id: orderId,
+                    ...orders[orderId]
+                };
                 
+                // تطبيق الفلتر
                 if (filter === 'all' || order.status === filter) {
-                    ordersArray.push(order);
+                    if (!postsMap.has(order.postId)) {
+                        postsMap.set(order.postId, {
+                            postId: order.postId,
+                            postTitle: order.postTitle,
+                            postPrice: order.postPrice,
+                            postImage: order.postImage,
+                            orders: [],
+                            createdAt: order.createdAt
+                        });
+                    }
+                    
+                    const postData = postsMap.get(order.postId);
+                    postData.orders.push(order);
+                    
+                    // تحديث الوقت لأحدث طلب
+                    if (!postData.createdAt || order.createdAt > postData.createdAt) {
+                        postData.createdAt = order.createdAt;
+                    }
                 }
-            }
+            });
             
-            currentOrders = ordersArray;
+            // تحويل Map إلى مصفوفة وترتيبها حسب الأحدث
+            const postsArray = Array.from(postsMap.values());
+            postsArray.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
             
-            if (ordersArray.length > 0) {
-                // ترتيب الطلبات من الأحدث إلى الأقدم
-                ordersArray.sort((a, b) => {
-                    const timeA = a.createdAt ? (typeof a.createdAt === 'number' ? a.createdAt : a.createdAt * 1000) : 0;
-                    const timeB = b.createdAt ? (typeof b.createdAt === 'number' ? b.createdAt : b.createdAt * 1000) : 0;
-                    return timeB - timeA;
-                });
-                
-                // تجميع الطلبات حسب المنشور
-                const ordersByPost = groupOrdersByPost(ordersArray);
-                
-                ordersByPost.forEach(postOrders => {
-                    const orderElement = createPostOrderItem(postOrders);
-                    ordersContainer.appendChild(orderElement);
+            // عرض الطلبات المجمعة
+            if (postsArray.length > 0) {
+                postsArray.forEach(postData => {
+                    createPostOrderItem(postData);
                 });
             } else {
                 ordersContainer.innerHTML = '<p class="no-orders">لا توجد طلبات</p>';
@@ -124,11 +134,10 @@ function createPostOrderItem(postData) {
     orderElement.className = 'order-item';
     orderElement.dataset.postId = postData.postId;
     
-    const statusCounts = {
-        pending: postData.orders.filter(o => o.status === 'pending').length,
-        approved: postData.orders.filter(o => o.status === 'approved').length,
-        rejected: postData.orders.filter(o => o.status === 'rejected').length
-    };
+    // حساب عدد الطلبات والحالات
+    const pendingCount = postData.orders.filter(o => o.status === 'pending').length;
+    const approvedCount = postData.orders.filter(o => o.status === 'approved').length;
+    const rejectedCount = postData.orders.filter(o => o.status === 'rejected').length;
     
     orderElement.innerHTML = `
         <div class="order-header">
@@ -136,40 +145,55 @@ function createPostOrderItem(postData) {
             <span class="order-count">${postData.orders.length} طلب</span>
         </div>
         
-        <div class="order-image">
-            ${postData.postImage ? `
+        ${postData.postImage ? `
+            <div class="order-image">
                 <img src="${postData.postImage}" alt="${postData.postTitle}">
-            ` : `
-                <div class="no-image"><i class="fas fa-image"></i></div>
-            `}
-        </div>
-        
-        <div class="order-statuses">
-            ${statusCounts.pending > 0 ? `
-                <span class="status-badge status-pending">${statusCounts.pending} قيد الانتظار</span>
-            ` : ''}
-            ${statusCounts.approved > 0 ? `
-                <span class="status-badge status-approved">${statusCounts.approved} مقبولة</span>
-            ` : ''}
-            ${statusCounts.rejected > 0 ? `
-                <span class="status-badge status-rejected">${statusCounts.rejected} مرفوضة</span>
-            ` : ''}
-        </div>
+            </div>
+        ` : ''}
         
         <div class="order-meta">
-            <span>انقر لعرض التفاصيل</span>
+            <span class="order-price">${postData.postPrice || 'غير محدد'}</span>
+            <div class="order-statuses">
+                ${pendingCount > 0 ? `<span class="status-badge status-pending">${pendingCount} قيد الانتظار</span>` : ''}
+                ${approvedCount > 0 ? `<span class="status-badge status-approved">${approvedCount} مقبولة</span>` : ''}
+                ${rejectedCount > 0 ? `<span class="status-badge status-rejected">${rejectedCount} مرفوضة</span>` : ''}
+            </div>
         </div>
     `;
     
     orderElement.addEventListener('click', () => {
-        localStorage.setItem('currentPostOrders', JSON.stringify(postData));
-        window.location.href = 'order-detail.html';
+        showPostOrders(postData);
     });
     
-    return orderElement;
-}       localStorage.setItem('currentPostOrders', JSON.stringify(postData));
-        window.location.href = 'order-detail.html';
-    });
-    
-    return orderElement;
+    ordersContainer.appendChild(orderElement);
 }
+
+// عرض طلبات منشور معين
+function showPostOrders(postData) {
+    // حفظ طلبات المنشور الحالي
+    localStorage.setItem('currentPostOrders', JSON.stringify(postData));
+    window.location.href = 'order-detail.html';
+}
+
+// وظائف مساعدة
+function formatDate(timestamp) {
+    if (!timestamp) return 'غير معروف';
+    
+    try {
+        // إذا كان timestamp كائن Firebase، نحوله إلى رقم
+        const date = typeof timestamp === 'object' ? 
+            new Date(timestamp.seconds * 1000) : 
+            new Date(timestamp);
+            
+        return date.toLocaleDateString('ar-EG', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    } catch (error) {
+        console.error('Error formatting date:', error);
+        return 'غير معروف';
+    }
+      }
