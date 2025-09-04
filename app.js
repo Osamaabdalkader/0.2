@@ -12,6 +12,8 @@ const loadingOverlay = document.getElementById('loading-overlay');
 const uploadProgress = document.getElementById('upload-progress');
 const notificationsIcon = document.getElementById('notifications-icon');
 const profileHeaderIcon = document.getElementById('profile-header-icon');
+const supportIcon = document.getElementById('support-icon');
+const moreIcon = document.getElementById('more-icon');
 
 // متغيرات النظام
 let currentUserData = null;
@@ -46,6 +48,34 @@ function setupEventListeners() {
             if (user) {
                 window.location.href = 'profile.html';
             } else {
+                window.location.href = 'auth.html';
+            }
+        });
+    }
+    
+    // أيقونة الدعم (تحل محل الرسائل)
+    if (supportIcon) {
+        supportIcon.addEventListener('click', () => {
+            const user = auth.currentUser;
+            if (user) {
+                window.location.href = 'support.html';
+            } else {
+                alert('يجب تسجيل الدخول أولاً للوصول إلى الدعم');
+                window.location.href = 'auth.html';
+            }
+        });
+    }
+    
+    // أيقونة المزيد (تحل محل الطلبات/الإعدادات)
+    if (moreIcon) {
+        moreIcon.addEventListener('click', () => {
+            const user = auth.currentUser;
+            if (user && currentUserData && currentUserData.isAdmin) {
+                window.location.href = 'orders.html';
+            } else if (user) {
+                window.location.href = 'more.html';
+            } else {
+                alert('يجب تسجيل الدخول أولاً');
                 window.location.href = 'auth.html';
             }
         });
@@ -158,15 +188,47 @@ function createPostCard(post) {
     postCard.innerHTML = `
         <div class="post-image">
             ${post.imageUrl ? `<img src="${post.imageUrl}" alt="${post.title}" loading="lazy">` : 
-            `<i class="fas fa-image"></i>`}
+            `<div class="no-image"><i class="fas fa-image"></i></div>`}
         </div>
         <div class="post-content">
             <h3 class="post-title">${post.title}</h3>
-            <p class="post-description">${shortDescription}</p>
+            <p class="post-description">${shortDescription || 'لا يوجد وصف'}</p>
+            
+            <div class="post-details">
+                ${post.location ? `
+                    <div class="detail-item">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span class="detail-location">${post.location}</span>
+                    </div>
+                ` : ''}
+                
+                ${post.category ? `
+                    <div class="detail-item">
+                        <i class="fas fa-tag"></i>
+                        <span class="detail-category">${post.category}</span>
+                    </div>
+                ` : ''}
+                
+                ${post.price ? `
+                    <div class="detail-item">
+                        <i class="fas fa-money-bill-wave"></i>
+                        <span>${post.price}</span>
+                    </div>
+                ` : ''}
+                
+                <div class="detail-item">
+                    <i class="fas fa-clock"></i>
+                    <span>${timeAgo}</span>
+                </div>
+            </div>
+            
             <div class="post-meta">
-                <div class="post-time">${timeAgo}</div>
+                <div class="post-time">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span>${timeAgo}</span>
+                </div>
                 <div class="post-author">
-                    <i class="fas fa-user"></i>
+                    <i class="fas fa-user-circle"></i>
                     <span>${post.authorName || 'مستخدم'}</span>
                 </div>
             </div>
@@ -222,6 +284,8 @@ function filterPosts() {
     const searchText = searchInput ? searchInput.value.toLowerCase() : '';
     const posts = document.querySelectorAll('.post-card');
     
+    let visibleCount = 0;
+    
     posts.forEach(post => {
         const title = post.querySelector('.post-title').textContent.toLowerCase();
         const description = post.querySelector('.post-description').textContent.toLowerCase();
@@ -237,10 +301,25 @@ function filterPosts() {
         
         if (matchesSearch && matchesType && matchesLocation) {
             post.style.display = 'block';
+            visibleCount++;
         } else {
             post.style.display = 'none';
         }
     });
+    
+    // إظهار رسالة إذا لم توجد نتائج
+    const noResults = document.getElementById('no-results');
+    if (visibleCount === 0 && posts.length > 0) {
+        if (!noResults) {
+            const noResultsMsg = document.createElement('p');
+            noResultsMsg.id = 'no-results';
+            noResultsMsg.className = 'no-posts';
+            noResultsMsg.textContent = 'لا توجد نتائج تطابق بحثك';
+            postsContainer.appendChild(noResultsMsg);
+        }
+    } else if (noResults) {
+        noResults.remove();
+    }
 }
 
 // دالة لتنسيق الوقت المنقضي
@@ -266,13 +345,21 @@ function formatTimeAgo(timestamp) {
     const minutes = Math.floor(diff / 60000);
     const hours = Math.floor(diff / 3600000);
     const days = Math.floor(diff / 86400000);
+    const weeks = Math.floor(days / 7);
+    const months = Math.floor(days / 30);
     
     if (minutes < 1) return 'الآن';
     if (minutes < 60) return `منذ ${minutes} دقيقة`;
     if (hours < 24) return `منذ ${hours} ساعة`;
     if (days < 7) return `منذ ${days} يوم`;
+    if (weeks < 4) return `منذ ${weeks} أسبوع`;
+    if (months < 12) return `منذ ${months} شهر`;
     
-    return postDate.toLocaleDateString('ar-EG');
+    return postDate.toLocaleDateString('ar-EG', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    });
 }
 
 // وظائف مساعدة
@@ -282,4 +369,4 @@ function showLoading() {
 
 function hideLoading() {
     if (loadingOverlay) loadingOverlay.classList.add('hidden');
-      }
+}
