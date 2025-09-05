@@ -79,7 +79,7 @@ function setupEventListeners() {
                 window.location.href = 'orders.html';
             } else if (user) {
                 // الانتقال إلى more.html للمستخدمين العاديين
-                window.location.href = 'messages.html';
+                window.location.href = 'more.html'; 
             } else {
                 alert('يجب تسجيل الدخول أولاً');
                 window.location.href = 'auth.html';
