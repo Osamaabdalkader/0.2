@@ -53,20 +53,20 @@ function setupEventListeners() {
         });
     }
     
-    // أيقونة الدعم (تحل محل الرسائل)
+    // أيقونة الدعم (تنتقل إلى الرسائل إذا كان مسجلاً أو auth.html إذا لم يكن مسجلاً)
     if (supportIcon) {
         supportIcon.addEventListener('click', () => {
             const user = auth.currentUser;
             if (user) {
-                window.location.href = 'support.html';
+                window.location.href = 'messages.html';
             } else {
-                alert('يجب تسجيل الدخول أولاً للوصول إلى الدعم');
+                alert('يجب تسجيل الدخول أولاً للوصول إلى الرسائل');
                 window.location.href = 'auth.html';
             }
         });
     }
     
-    // أيقونة المزيد (تحل محل الطلبات/الإعدادات)
+    // أيقونة المزيد (تنتقل إلى orders.html إذا كان مشرفاً، more.html إذا كان مستخدم عادي، auth.html إذا لم يكن مسجلاً)
     if (moreIcon) {
         moreIcon.addEventListener('click', () => {
             const user = auth.currentUser;
@@ -369,4 +369,4 @@ function showLoading() {
 
 function hideLoading() {
     if (loadingOverlay) loadingOverlay.classList.add('hidden');
-}
+                                            }
