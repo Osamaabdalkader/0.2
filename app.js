@@ -40,32 +40,6 @@ function setupEventListeners() {
             alert('صفحة الإشعارات قيد التطوير');
         });
     }
-    
-// التحقق من حالة المصادقة
-function checkAuthState() {
-    onAuthStateChanged(auth, user => {
-        if (user) {
-            // تحميل بيانات المستخدم الحالي
-            const userRef = ref(database, 'users/' + user.uid);
-            onValue(userRef, (snapshot) => {
-                if (snapshot.exists()) {
-                    currentUserData = snapshot.val();
-                    currentUserData.uid = user.uid;
-                    
-                    // تحديث واجهة المستخدم
-                    updateUIForLoggedInUser();
-                    
-                    // تحميل المشرفين
-                    loadAdminUsers();
-                }
-            });
-        } else {
-            // المستخدم غير ممسجل
-            updateUIForLoggedOutUser();
-        }
-    });
-}
-
 
 
 
@@ -112,7 +86,38 @@ function checkAuthState() {
             }
         });
     }
+                                           }
+
+  
+// التحقق من حالة المصادقة
+function checkAuthState() {
+    onAuthStateChanged(auth, user => {
+        if (user) {
+            // تحميل بيانات المستخدم الحالي
+            const userRef = ref(database, 'users/' + user.uid);
+            onValue(userRef, (snapshot) => {
+                if (snapshot.exists()) {
+                    currentUserData = snapshot.val();
+                    currentUserData.uid = user.uid;
+                    
+                    // تحديث واجهة المستخدم
+                    updateUIForLoggedInUser();
+                    
+                    // تحميل المشرفين
+                    loadAdminUsers();
+                }
+            });
+        } else {
+            // المستخدم غير ممسجل
+            updateUIForLoggedOutUser();
+        }
+    });
 }
+
+
+
+
+
 
 // تحميل المشرفين
 function loadAdminUsers() {
