@@ -40,50 +40,6 @@ function setupEventListeners() {
             alert('صفحة الإشعارات قيد التطوير');
         });
     }
-    
-    // أيقونة الملف الشخصي في الهيدر
-    if (profileHeaderIcon) {
-        profileHeaderIcon.addEventListener('click', () => {
-            const user = auth.currentUser;
-            if (user) {
-                window.location.href = 'profile.html';
-            } else {
-                window.location.href = 'auth.html';
-            }
-        });
-    }
-    
-    // أيقونة الدعم (تحل محل الرسائل)
-    if (supportIcon) {
-        supportIcon.addEventListener('click', () => {
-            const user = auth.currentUser;
-            if (user) {
-                // الانتقال إلى messages.html للمستخدم المسجل
-                window.location.href = 'messages.html';
-            } else {
-                alert('يجب تسجيل الدخول أولاً للوصول إلى الرسائل');
-                window.location.href = 'auth.html';
-            }
-        });
-    }
-    
-    // أيقونة المزيد (تحل محل الطلبات/الإعدادات)
-    if (moreIcon) {
-        moreIcon.addEventListener('click', () => {
-            const user = auth.currentUser;
-            if (user && currentUserData && currentUserData.isAdmin) {
-                // الانتقال إلى orders.html للمشرفين
-                window.location.href = 'orders.html';
-            } else if (user) {
-                // الانتقال إلى more.html للمستخدمين العاديين
-                window.location.href = 'more.html';
-            } else {
-                alert('يجب تسجيل الدخول أولاً');
-                window.location.href = 'auth.html';
-            }
-        });
-    }
-}
 
 // التحقق من حالة المصادقة
 function checkAuthState() {
@@ -110,18 +66,49 @@ function checkAuthState() {
     });
 }
 
-// تحديث الواجهة للمستخدم المسجل
-function updateUIForLoggedInUser() {
-    // إظهار أيقونة الإدارة إذا كان المستخدم مشرفاً
-    if (currentUserData && currentUserData.isAdmin) {
-        if (adminIcon) adminIcon.style.display = 'flex';
+
+    
+    // أيقونة الملف الشخصي في الهيدر
+    if (profileHeaderIcon) {
+        profileHeaderIcon.addEventListener('click', () => {
+            const user = auth.currentUser;
+            if (user) {
+                window.location.href = 'profile.html';
+            } else {
+                window.location.href = 'auth.html';
+            }
+        });
+    }
+    
+    // أيقونة الدعم (تحل محل الرسائل)
+    if (supportIcon) {
+        supportIcon.addEventListener('click', () => {
+            const user = auth.currentUser;
+            if (user) {
+                window.location.href = 'support.html';
+            } else {
+                alert('يجب تسجيل الدخول أولاً للوصول إلى الدعم');
+                window.location.href = 'auth.html';
+            }
+        });
+    }
+    
+    // أيقونة المزيد (تحل محل الطلبات/الإعدادات)
+    if (moreIcon) {
+        moreIcon.addEventListener('click', () => {
+            const user = auth.currentUser;
+            if (currentUserData && currentUserData.isAdmin) {
+                window.location.href = 'orders.html';
+            } else if (user) {
+                window.location.href = 'more.html';
+            } else {
+                alert('يجب تسجيل الدخول أولاً');
+                window.location.href = 'auth.html';
+            }
+        });
     }
 }
 
-// تحديث الواجهة للمستخدم غير المسجل
-function updateUIForLoggedOutUser() {
-    if (adminIcon) adminIcon.style.display = 'none';
-}
 
 // تحميل المشرفين
 function loadAdminUsers() {
