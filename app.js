@@ -7,13 +7,15 @@ import {
 
 // عناصر DOM
 const postsContainer = document.getElementById('posts-container');
-const adminIcon = document.getElementById('admin-icon');
 const loadingOverlay = document.getElementById('loading-overlay');
 const uploadProgress = document.getElementById('upload-progress');
 const notificationsIcon = document.getElementById('notifications-icon');
 const profileHeaderIcon = document.getElementById('profile-header-icon');
 const supportIcon = document.getElementById('support-icon');
 const moreIcon = document.getElementById('more-icon');
+const groupsIcon = document.getElementById('groups-icon');
+const cartIcon = document.getElementById('cart-icon');
+
 
 // متغيرات النظام
 let currentUserData = null;
@@ -41,9 +43,6 @@ function setupEventListeners() {
         });
     }
 
-
-
-
     // أيقونة الملف الشخصي في الهيدر
     if (profileHeaderIcon) {
         profileHeaderIcon.addEventListener('click', () => {
@@ -55,8 +54,36 @@ function setupEventListeners() {
             }
         });
     }
+
+    // أيقونة الجروبات
+    if (groupsIcon) {
+        groupsIcon.addEventListener('click', () => {
+            const user = auth.currentUser;
+            if (user) {
+                // الانتقال إلى groups .html للمستخدم المسجل
+                window.location.href = 'groups.html';
+            } else {
+                alert('يجب تسجيل الدخول أولاً للوصول إلى الرسائل');
+                window.location.href = 'auth.html';
+            }
+        });
+    }
     
-    // أيقونة الدعم (تحل محل الرسائل)
+    // أيقونة السلة
+    if (cartIcon) {
+        cartIcon.addEventListener('click', () => {
+            const user = auth.currentUser;
+            if (user) {
+                // الانتقال .carthtml للمستخدم المسجل
+                window.location.href = 'cart.html';
+            } else {
+                alert('يجب تسجيل الدخول أولاً للوصول إلى الرسائل');
+                window.location.href = 'auth.html';
+            }
+        });
+    }
+    
+    // أيقونة الدعم    
     if (supportIcon) {
         supportIcon.addEventListener('click', () => {
             const user = auth.currentUser;
@@ -70,7 +97,7 @@ function setupEventListeners() {
         });
     }
     
-    // أيقونة المزيد (تحل محل الطلبات/الإعدادات)
+    // أيقونة المزيد (
     if (moreIcon) {
         moreIcon.addEventListener('click', () => {
             const user = auth.currentUser;
@@ -113,11 +140,6 @@ function checkAuthState() {
         }
     });
 }
-
-
-
-
-
 
 // تحميل المشرفين
 function loadAdminUsers() {
