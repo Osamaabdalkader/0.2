@@ -1,0 +1,112 @@
+/* more.css */
+.more-container {
+    max-width: 800px;
+    margin: 30px auto;
+}
+
+.more-header {
+    background: white;
+    padding: 30px;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    margin-bottom: 30px;
+    text-align: center;
+}
+
+.more-title {
+    font-size: 2rem;
+    color: var(--primary-color);
+    margin-bottom: 15px;
+}
+
+.more-subtitle {
+    color: var(--gray-color);
+}
+
+.more-content {
+    background: white;
+    padding: 30px;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+}
+
+.more-section {
+    margin-bottom: 40px;
+}
+
+.more-section:last-child {
+    margin-bottom: 0;
+}
+
+.more-list {
+    list-style: none;
+}
+
+.more-item {
+    padding: 15px 0;
+    border-bottom: 1px solid var(--light-gray);
+}
+
+.more-item:last-child {
+    border-bottom: none;
+}
+
+.more-link {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    text-decoration: none;
+    color: var(--dark-color);
+    transition: var(--transition);
+}
+
+.more-link:hover {
+    color: var(--primary-color);
+}
+
+.more-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--light-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--primary-color);
+    font-size: 1.2rem;
+}
+
+.more-text {
+    flex: 1;
+}
+
+.more-text h3 {
+    margin-bottom: 5px;
+    font-size: 1.1rem;
+}
+
+.more-text p {
+    color: var(--gray-color);
+    font-size: 0.9rem;
+}
+
+.arrow-icon {
+    color: var(--gray-color);
+}
+
+.app-info {
+    text-align: center;
+    margin-top: 40px;
+    padding-top: 30px;
+    border-top: 1px solid var(--light-gray);
+}
+
+.app-version {
+    color: var(--gray-color);
+    margin-bottom: 15px;
+}
+
+.app-copyright {
+    color: var(--gray-color);
+    font-size: 0.9rem;
+}
