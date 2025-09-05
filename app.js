@@ -40,7 +40,7 @@ function setupEventListeners() {
             alert('صفحة الإشعارات قيد التطوير');
         });
     }
-
+    
 // التحقق من حالة المصادقة
 function checkAuthState() {
     onAuthStateChanged(auth, user => {
@@ -60,14 +60,16 @@ function checkAuthState() {
                 }
             });
         } else {
-            // المستخدم غير مسجل
+            // المستخدم غير ممسجل
             updateUIForLoggedOutUser();
         }
     });
 }
 
 
-    
+
+
+
     // أيقونة الملف الشخصي في الهيدر
     if (profileHeaderIcon) {
         profileHeaderIcon.addEventListener('click', () => {
@@ -85,9 +87,10 @@ function checkAuthState() {
         supportIcon.addEventListener('click', () => {
             const user = auth.currentUser;
             if (user) {
-                window.location.href = 'support.html';
+                // الانتقال إلى messages.html للمستخدم المسجل
+                window.location.href = 'messages.html';
             } else {
-                alert('يجب تسجيل الدخول أولاً للوصول إلى الدعم');
+                alert('يجب تسجيل الدخول أولاً للوصول إلى الرسائل');
                 window.location.href = 'auth.html';
             }
         });
@@ -97,10 +100,12 @@ function checkAuthState() {
     if (moreIcon) {
         moreIcon.addEventListener('click', () => {
             const user = auth.currentUser;
-            if (currentUserData && currentUserData.isAdmin) {
+            if (user && currentUserData && currentUserData.isAdmin) {
+                // الانتقال إلى orders.html للمشرفين
                 window.location.href = 'orders.html';
             } else if (user) {
-                window.location.href = 'more.html';
+                // الانتقال إلى more.html للمستخدمين العاديين
+                window.location.href = 'messages.html';
             } else {
                 alert('يجب تسجيل الدخول أولاً');
                 window.location.href = 'auth.html';
@@ -108,7 +113,6 @@ function checkAuthState() {
         });
     }
 }
-
 
 // تحميل المشرفين
 function loadAdminUsers() {
