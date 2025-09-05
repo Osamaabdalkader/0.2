@@ -58,7 +58,7 @@ function setupEventListeners() {
         supportIcon.addEventListener('click', () => {
             const user = auth.currentUser;
             if (user) {
-                // تم التعديل هنا: الانتقال إلى messages.html بدلاً من support.html
+                // تم التعديل: الانتقال إلى messages.html للمستخدم المسجل
                 window.location.href = 'messages.html';
             } else {
                 alert('يجب تسجيل الدخول أولاً للوصول إلى الرسائل');
@@ -72,10 +72,10 @@ function setupEventListeners() {
         moreIcon.addEventListener('click', () => {
             const user = auth.currentUser;
             if (user && currentUserData && currentUserData.isAdmin) {
-                // تم التعديل هنا: الانتقال إلى orders.html للمشرفين
+                // تم التعديل: الانتقال إلى orders.html للمشرفين
                 window.location.href = 'orders.html';
             } else if (user) {
-                // تم التعديل هنا: الانتقال إلى more.html للمستخدمين العاديين
+                // الانتقال إلى more.html للمستخدمين العاديين
                 window.location.href = 'more.html';
             } else {
                 alert('يجب تسجيل الدخول أولاً');
@@ -372,4 +372,4 @@ function showLoading() {
 
 function hideLoading() {
     if (loadingOverlay) loadingOverlay.classList.add('hidden');
-                        }
+}
