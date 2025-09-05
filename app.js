@@ -58,7 +58,7 @@ function setupEventListeners() {
         supportIcon.addEventListener('click', () => {
             const user = auth.currentUser;
             if (user) {
-                // تم التعديل: الانتقال إلى messages.html للمستخدم المسجل
+                // الانتقال إلى messages.html للمستخدم المسجل
                 window.location.href = 'messages.html';
             } else {
                 alert('يجب تسجيل الدخول أولاً للوصول إلى الرسائل');
@@ -72,7 +72,7 @@ function setupEventListeners() {
         moreIcon.addEventListener('click', () => {
             const user = auth.currentUser;
             if (user && currentUserData && currentUserData.isAdmin) {
-                // تم التعديل: الانتقال إلى orders.html للمشرفين
+                // الانتقال إلى orders.html للمشرفين
                 window.location.href = 'orders.html';
             } else if (user) {
                 // الانتقال إلى more.html للمستخدمين العاديين
@@ -114,13 +114,13 @@ function checkAuthState() {
 function updateUIForLoggedInUser() {
     // إظهار أيقونة الإدارة إذا كان المستخدم مشرفاً
     if (currentUserData && currentUserData.isAdmin) {
-        adminIcon.style.display = 'flex';
+        if (adminIcon) adminIcon.style.display = 'flex';
     }
 }
 
 // تحديث الواجهة للمستخدم غير المسجل
 function updateUIForLoggedOutUser() {
-    adminIcon.style.display = 'none';
+    if (adminIcon) adminIcon.style.display = 'none';
 }
 
 // تحميل المشرفين
