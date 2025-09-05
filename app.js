@@ -1,13 +1,12 @@
-// app.js - الإصدار الكامل بعد التعديل
+// app.js - الإصدار المعدل والمصحح
 import { 
   auth, database, storage,
   onAuthStateChanged, signOut,
-  ref, onValue, serverTimestamp, push, set, update, remove
+  ref, onValue, serverTimestamp, push, set, update, remove, get
 } from './firebase.js';
 
 // عناصر DOM
 const postsContainer = document.getElementById('posts-container');
-const adminIcon = document.getElementById('admin-icon');
 const loadingOverlay = document.getElementById('loading-overlay');
 const uploadProgress = document.getElementById('upload-progress');
 const notificationsIcon = document.getElementById('notifications-icon');
@@ -17,7 +16,6 @@ const moreIcon = document.getElementById('more-icon');
 
 // متغيرات النظام
 let currentUserData = null;
-let adminUsers = [];
 let currentPosts = [];
 let currentFilter = {
     type: '',
@@ -53,33 +51,84 @@ function setupEventListeners() {
         });
     }
     
-    // أيقونة الدعم (تنتقل إلى الرسائل إذا كان مسجلاً أو auth.html إذا لم يكن مسجلاً)
+    // أيقونة الدعم
     if (supportIcon) {
-        supportIcon.addEventListener('click', () => {
-            const user = auth.currentUser;
-            if (user) {
-                window.location.href = 'messages.html';
-            } else {
-                alert('يجب تسجيل الدخول أولاً للوصول إلى الرسائل');
-                window.location.href = 'auth.html';
-            }
-        });
+        supportIcon.addEventListener('click', handleSupportClick);
     }
     
-    // أيقونة المزيد (تنتقل إلى orders.html إذا كان مشرفاً، more.html إذا كان مستخدم عادي، auth.html إذا لم يكن مسجلاً)
+    // أيقونة المزيد
     if (moreIcon) {
-        moreIcon.addEventListener('click', () => {
-            const user = auth.currentUser;
-            if (user && currentUserData && currentUserData.isAdmin) {
-                window.location.href = 'orders.html';
-            } else if (user) {
-                window.location.href = 'more.html';
-            } else {
-                alert('يجب تسجيل الدخول أولاً');
-                window.location.href = 'auth.html';
-            }
-        });
+        moreIcon.addEventListener('click', handleMoreClick);
     }
+}
+
+// معالجة النقر على أيقونة الدعم
+async function handleSupportClick() {
+    const user = auth.currentUser;
+    if (user) {
+        // تحميل بيانات المستخدم إذا لم تكن محملة
+        if (!currentUserData) {
+            await loadCurrentUserData(user.uid);
+        }
+        window.location.href = 'messages.html';
+    } else {
+        alert('يجب تسجيل الدخول أولاً للوصول إلى الرسائل');
+        window.location.href = 'auth.html';
+    }
+}
+
+// معالجة النقر على أيقونة المزيد
+async function handleMoreClick() {
+    const user = auth.currentUser;
+    if (user) {
+        // تحميل بيانات المستخدم إذا لم تكن محملة
+        if (!currentUserData) {
+            await loadCurrentUserData(user.uid);
+        }
+        
+        // التحقق من صلاحيات المشرف
+        const isAdmin = await checkIfUserIsAdmin(user.uid);
+        
+        if (isAdmin) {
+            window.location.href = 'orders.html';
+        } else {
+            window.location.href = 'more.html';
+        }
+    } else {
+        alert('يجب تسجيل الدخول أولاً');
+        window.location.href = 'auth.html';
+    }
+}
+
+// تحميل بيانات المستخدم الحالي
+async function loadCurrentUserData(userId) {
+    return new Promise((resolve) => {
+        const userRef = ref(database, 'users/' + userId);
+        onValue(userRef, (snapshot) => {
+            if (snapshot.exists()) {
+                currentUserData = snapshot.val();
+                currentUserData.uid = userId;
+                resolve(currentUserData);
+            } else {
+                resolve(null);
+            }
+        }, { onlyOnce: true });
+    });
+}
+
+// التحقق مما إذا كان المستخدم مشرفاً
+async function checkIfUserIsAdmin(userId) {
+    return new Promise((resolve) => {
+        const userRef = ref(database, 'users/' + userId);
+        onValue(userRef, (snapshot) => {
+            if (snapshot.exists()) {
+                const userData = snapshot.val();
+                resolve(userData.isAdmin === true);
+            } else {
+                resolve(false);
+            }
+        }, { onlyOnce: true });
+    });
 }
 
 // التحقق من حالة المصادقة
@@ -87,17 +136,9 @@ function checkAuthState() {
     onAuthStateChanged(auth, user => {
         if (user) {
             // تحميل بيانات المستخدم الحالي
-            const userRef = ref(database, 'users/' + user.uid);
-            onValue(userRef, (snapshot) => {
-                if (snapshot.exists()) {
-                    currentUserData = snapshot.val();
-                    currentUserData.uid = user.uid;
-                    
-                    // تحديث واجهة المستخدم
+            loadCurrentUserData(user.uid).then(userData => {
+                if (userData) {
                     updateUIForLoggedInUser();
-                    
-                    // تحميل المشرفين
-                    loadAdminUsers();
                 }
             });
         } else {
@@ -109,31 +150,12 @@ function checkAuthState() {
 
 // تحديث الواجهة للمستخدم المسجل
 function updateUIForLoggedInUser() {
-    // إظهار أيقونة الإدارة إذا كان المستخدم مشرفاً
-    if (currentUserData && currentUserData.isAdmin) {
-        adminIcon.style.display = 'flex';
-    }
+    // يمكنك إضافة أي تحديثات للواجهة هنا
 }
 
 // تحديث الواجهة للمستخدم غير المسجل
 function updateUIForLoggedOutUser() {
-    adminIcon.style.display = 'none';
-}
-
-// تحميل المشرفين
-function loadAdminUsers() {
-    const usersRef = ref(database, 'users');
-    onValue(usersRef, (snapshot) => {
-        adminUsers = [];
-        if (snapshot.exists()) {
-            const users = snapshot.val();
-            for (const userId in users) {
-                if (users[userId].isAdmin) {
-                    adminUsers.push(userId);
-                }
-            }
-        }
-    });
+    // يمكنك إضافة أي تحديثات للواجهة هنا
 }
 
 // تحميل المنشورات للجميع
@@ -369,4 +391,4 @@ function showLoading() {
 
 function hideLoading() {
     if (loadingOverlay) loadingOverlay.classList.add('hidden');
-                                            }
+}
